@@ -14,6 +14,8 @@ erro = '\033[31m[ERROR]\033[0m'
 info = '\033[32m[INFO_]\033[0m'
 warn = '\033[33m[WARN_]\033[0m'
 
+# TODO: 要有单独使用其中的某个工具并结束的功能
+
 def ddd(not_ddd_list):
     # data_de_duplication
     return list(set(not_ddd_list))
