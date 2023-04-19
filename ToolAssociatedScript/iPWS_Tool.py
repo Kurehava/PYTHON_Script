@@ -144,14 +144,14 @@ def param_input(method_list, param_type):
     print(f'{space * 7}Method Name {space * (formatpi - 11)} Parameter Value')
     for index in range(len(method_list)):
         mp, tp = method_list[index], param_type[index]
-        print(f'No.{pi_count if pi_count > 10 else f"0{pi_count}"}: ', end='')
-        print(f'{mp if len(mp) <= formatpi else f"{mp}{space * (formatpi - len(mp))}"} ')
-        temp = input()
-        if check_str(temp):
-            str_type = 'float' if '.' in temp else 'int'
-        else:
-            str_type = 'str' if '_' in temp else 'None'
-        
+        while True:
+            print(f'No.{pi_count if pi_count > 10 else f"0{pi_count}"}: ', end='')
+            print(f'{mp if len(mp) <= formatpi else f"{mp}{space * (formatpi - len(mp))}"} ')
+            temp = input()
+            str_type = check_type(temp)
+            if str_type!= param_type[index]:
+                print(f'')
+
         pi_count += 1
         value_temps.append(input())
     return [1, value_temps]
@@ -161,6 +161,18 @@ def exit_tool():
 
 def check_str(string):
     return bool(compile(r'^[-+]?[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?$').match(string))
+
+def check_type(string):
+    if check_str(string):
+        if '.' in string:
+            return 'float'
+        else:
+            return 'int'
+    else:
+        if '_' in string:
+            return 'str'
+        else:
+            return 'None'
 
 def banner_():
     banner = f'\033[41;30miPWS 統合ツール \033[0;0m\n'\
