@@ -150,10 +150,23 @@ def param_input(method_list, param_type):
             temp = input()
             str_type = check_type(temp)
             if str_type!= param_type[index]:
-                print(f'')
+                print(f'{erro}: input type ill')
+                for i in range(3, 0, -1):
+                    print(f'wait {i} sec.')
+                    sleep(1)
+            else:
+                break
+            system(clsr)
+            print(f'No.{space * 4}Method Name {space * (formatpi - 11)} Parameter Value')
+            pi_count = 1
+										for data in value_temps:
+													 print(f'No.{pi_count if pi_count > 10 else f"0{pi_count}"}: ', end='')
+            			 print(f"{data[pi_count - 1][0]}{space * (formatpi - len(data[pi_count -1][0]))} ")
+                print(f'{data[pi_count - 1][1]}')
+                pi_count += 1
 
         pi_count += 1
-        value_temps.append(input())
+        value_temps.append([mp, tp, temp])
     return [1, value_temps]
 
 def exit_tool():
@@ -187,7 +200,8 @@ def banner_():
 
 if __name__ == '__main__':
     while True:
-        system('clear') if platform in {'linux', 'darwin'} else system('cls')
+        clsr = 'clear' if platform in {'linux', 'darwin'} else 'cls'
+        system(clsr)
         menu_list = [
             'age_layering_v1',
             'average_v1',
