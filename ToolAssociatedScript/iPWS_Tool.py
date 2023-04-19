@@ -134,14 +134,14 @@ def param_input(method_list, param_type):
         print(f'{erro}Inconsistent number of methods and parameters.')
         print(f'{erro}Plz reinput.')
         return [0]
-    print(f'Method {menu_list[select - 1]} parameter input:')
+    print(f'Method [{menu_list[select - 1]}] parameter input:')
     pi_count = 1
     input_fail = []
     # while 轮询fail数组的第一个项目
     list_max = len(max(method_list, key=len))
     formatpi = list_max if list_max <= 11 else 11
     value_temps = []
-    print(f'{space * 7}Method Name {space * (formatpi - 11)} Parameter Value')
+    print(f'No.{space * 4}Method Name {space * (formatpi - 11)} Parameter Value')
     for index in range(len(method_list)):
         mp, tp = method_list[index], param_type[index]
         while True:
@@ -159,12 +159,11 @@ def param_input(method_list, param_type):
             system(clsr)
             print(f'No.{space * 4}Method Name {space * (formatpi - 11)} Parameter Value')
             pi_count = 1
-										for data in value_temps:
-													 print(f'No.{pi_count if pi_count > 10 else f"0{pi_count}"}: ', end='')
-            			 print(f"{data[pi_count - 1][0]}{space * (formatpi - len(data[pi_count -1][0]))} ")
+            for data in value_temps:
+                print(f'No.{pi_count if pi_count > 10 else f"0{pi_count}"}: ', end='')
+                print(f"{data[pi_count - 1][0]}{space * (formatpi - len(data[pi_count -1][0]))} ")
                 print(f'{data[pi_count - 1][1]}')
                 pi_count += 1
-
         pi_count += 1
         value_temps.append([mp, tp, temp])
     return [1, value_temps]
