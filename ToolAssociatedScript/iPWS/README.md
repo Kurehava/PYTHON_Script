@@ -6,6 +6,7 @@ based iPWS Offical Tools
 1.```python/in/path/python -m pip install -r requirement.txt```
  or
  ```python -m pip install -r requirement.txt```
+ 
 2.python iPWS_Tool.py
 
 ## -> package  .py
