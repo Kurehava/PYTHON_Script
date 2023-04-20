@@ -372,7 +372,7 @@ class LibraryPathSplit:
 
 def manual_path_split(file_path, config):
     """
-        文件路径处理(Manual)
+        文件路径处理(Manual) by kurehava
 
         Args:
             file_path (str): 文件路径
@@ -402,7 +402,7 @@ def manual_path_split(file_path, config):
 
 def multiple_file_split():
     """
-    多文件终端拖入路径分离函数
+    多文件终端拖入路径分离函数 by kurehava
 
     :return: file_list, fail_list
     """
