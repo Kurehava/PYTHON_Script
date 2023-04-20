@@ -24,7 +24,7 @@ or
 or
  ```python -m pip install pyinstaller```
  
- 3.```pyinstaller iPWS_Tool.py```
+ 3.```pyinstaller -F iPWS_Tool.py```
  
  4.Insert ```import sys ; sys.setrecursionlimit(sys.getrecursionlimit() * 5)``` in the second line of ```iPWS_Tool.spec``` file
  
