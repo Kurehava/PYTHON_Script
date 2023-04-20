@@ -9,7 +9,7 @@ based iPWS Offical Tools
 2.python iPWS_Tool.py
 
 ## -> package  .py
-Try to exit the conda virtual environment installation. MKL will be installed by default in the conda virtual environment, which will increase the package size
+Try to exit the installation of the conda virtual environment. pandas' INTEL-specific linear library MKL will be installed in the conda virtual environment by default, which will increase the size of the package.
 
 0.(select)```conda deactivate```
 1.```python/in/path/python -m pip install -r requirement.txt```
