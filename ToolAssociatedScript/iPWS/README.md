@@ -30,5 +30,5 @@ or
  
  5.```pyinstaller iPWS_Tool.spec```
 
- 6.Remove the packed iPWS_Tool from the dist folder, then delete ```dist, build, iPWS_Tool.spec```
+ 6.move the packed iPWS_Tool from the dist folder to another path, then delete ```dist, build, iPWS_Tool.spec```
 
