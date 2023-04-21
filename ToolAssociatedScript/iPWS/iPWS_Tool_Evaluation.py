@@ -249,7 +249,7 @@ def lap_v2(ipf, opf):
     col__list = [int(c) for c in cols.split('_')]
     epss_list = [float(e) for e in epsilons.split('_')]
     
-    for i in range(len(cols)):
+    for i in range(len(col__list)):
         df.iloc[:, col__list[i]] = lap(
             df.iloc[:, col__list[i]], epss_list[i], SEED
             )
@@ -276,7 +276,7 @@ def nn_v1(ipf, opf):
     row_list = [int(r) for r in rows.split('_')]
     col_list = [int(c) for c in cols.split('_')]
     
-    for i in range(len(cols)):
+    for i in range(len(col_list)):
         # df.iloc[row_list[i], col_list[i]] = 99
         df.iloc[row_list[i], col_list[i]] = num
     df.to_csv(opf, index=None, header=None)
@@ -354,7 +354,7 @@ def top2_round_v1(ipf, opf):
     col__list = [int(c) for c in cols.split('_')]
     chop_list = [int(e) for e in epsilons.split('_')]
     
-    for i in range(len(cols)):
+    for i in range(len(col__list)):
         df.iloc[
             df.iloc[:, col__list[i]] >= chop_list[i],
             col__list[i]
