@@ -473,7 +473,8 @@ def multiple_file_split(msg):
     addr_flags = 0
 
     if input_path in {'E', 'e'}:
-        system(clsr);exit(0)
+        system(clsr)
+        system("osascript -e 'tell application \"Terminal\" to close first window' & exit")
     input_path = f'{input_path}/'
     for length in range(len(input_path)):
         if input_path[length] == '/' and addr_flags != 1:
