@@ -1,4 +1,4 @@
 pandas==1.5.3
-numpy==1.21.5
+numpy==1.21.0
 InputClean==0.1.2
 statsmodels==0.13.5
