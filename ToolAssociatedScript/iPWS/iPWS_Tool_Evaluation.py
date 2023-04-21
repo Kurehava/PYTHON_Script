@@ -382,7 +382,10 @@ def exit_tool(p1, p2):
         system(clsr);banner_(file_path=mfs_res[1])
         eva(opf, mfs_res[1])
     system(clsr)
-    exit(0)
+    if platform == 'darwin':
+        system("osascript -e 'tell application \"Terminal\" to close first window' & exit")
+    else:
+        exit(0)
 
 def erro_countdown(sec):
     for i in range(sec, 0, -1):
