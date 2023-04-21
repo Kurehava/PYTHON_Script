@@ -2,16 +2,22 @@ from os import system, path, walk, makedirs
 from re import compile
 from sys import exit, platform
 from os.path import isfile
+from math import floor
 from time import strftime, localtime, sleep
 from shutil import copy, rmtree
 from string import ascii_letters, digits
 from random import seed, random, choice, sample
 
 # import numpy as np
+from numpy import exp
 from numpy.random import default_rng
 from numpy.random import seed as nrseed
+from pandas import concat, DataFrame
 from pandas import read_csv as rdc
+from statsmodels import api as sm
+from statsmodels.formula import api as smf
 from InputClean.InputClean import ci
+
 
 # define  input_file -> ipf
 # define output_file -> opf
@@ -27,9 +33,76 @@ yellow = '\033[93m'
 
 # TODO: 要有单独使用其中的某个工具并结束的功能
 # TODO: 写入log前检查其是否被占用
+# original csv file : mfs_res[1]
+# latest Anonymous csv file : opf
 
 # ------------------------------------------------------
 # offical Function
+
+def agDiff(dfOR, dfAD):
+    # Score A
+    retOR = 0
+    retOR_RD = 0
+    
+    for i in range(13):
+        df_concat = concat([
+            DataFrame(dfOR.loc[:, i].value_counts().sort_index()),
+            DataFrame(dfAD.loc[:, i].value_counts().sort_index())
+        ], axis=1).fillna(0)
+        retOR += abs(df_concat.iloc[:, 0]).sum()
+        retOR_RD += abs(df_concat.iloc[:, 0] - df_concat.iloc[:, 1]).sum()
+    
+    score_a = (1 - retOR_RD / retOR)
+    return score_a
+
+def corrDiff(dfOD, dfAD):
+    # Score B
+    sums = (dfOD.corr() - dfAD.corr()).abs().sum().sum()
+    tpls = dfOD.shape[1] * dfOD.shape[1] * 2
+    score_b = (1 -  sums / tpls)
+    return score_b
+
+def odds(df):
+    # Score C
+    model = smf.glm(
+        formula='COVID ~ AGE+GENDER+RACE+INCOME+EDUCATION+VETERAN+NOH+HTN+DM+IHD+CKD+COPD+CA',
+        data=df,
+        family=sm.families.Binomial()
+    )
+    res = model.fit()
+
+    df2 = DataFrame(
+        res.params,
+        columns=['Coef']
+    )
+    df2['OR'] = exp(res.params)
+    df2['pvalue'] = res.pvalues
+    
+    return df2
+
+def oddsDiff(df_orig, df_anon):
+    # Score D
+    da, do = df_anon, df_orig
+    
+    da.columns = ['AGE', 'GENDER', 'RACE', 'INCOME', 'EDUCATION', 'VETERAN',
+                  'NOH', 'HTN', 'DM', 'IHD', 'CKD', 'COPD', 'CA']
+    do.columns = ['AGE', 'GENDER', 'RACE', 'INCOME', 'EDUCATION', 'VETERAN',
+                  'NOH', 'HTN', 'DM', 'IHD', 'CKD', 'COPD', 'CA']
+    du.columns = ['AGE', 'GENDER', 'RACE', 'INCOME', 'EDUCATION', 'VETERAN',
+                  'NOH', 'HTN', 'DM', 'IHD', 'CKD', 'COPD', 'CA', 'COVID']
+    da['COVID'] = 1
+    do['COVID'] = 1
+    
+    da = concat([da, du])
+    do = concat([do, du])
+    
+    da = odds(da)['OR']
+    do = odds(do)['OR']
+    
+    score_c = max(1- ((da - do).abs().max()) / 20, 0)
+    score_d = max(1- ((da - do).abs().mean()) / 20, 0)
+    
+    return score_c, score_d
 
 def age_layering_v1(ipf, opf):
     if ipf == 'help':
@@ -305,6 +378,10 @@ def exit_tool(p1, p2):
     plf.close()
     if count == 1:
         rmtree(file_save_path)
+    else:
+        system(clsr);banner_(file_path=mfs_res[1])
+        eva(opf, mfs_res[1])
+    system(clsr)
     exit(0)
 
 def erro_countdown(sec):
@@ -368,28 +445,14 @@ class LibraryPathSplit:
                 temp.root_file_name(),
                 temp.root_file_name_mix()]
 
-
-def manual_path_split(file_path, config):
-    """
-        文件路径处理(Manual)
-
-        Args:
-            file_path (str): 文件路径
-            config (list): config
-
-        Returns:
-            list: 0:file_path, 1:root, 2:file_name, 3:ext,
-                  4:file_name_mix, 5:no_ext, 6:no_ext_mix
-    """
-    # 解包config
-    CLEAR, VERSION, SELECT_DICT, PIL_FORMAT_LIST, BACKSLASH, OS_TYPE = config
+def manual_path_split(file_path):
 
     random_str = ''.join(sample(ascii_letters + digits, 2))
     now_time = strftime("%Y%m%d%H%M%S", localtime())
     nr = f'{now_time}_{random_str}'
 
-    root = file_path.replace(file_path.split(BACKSLASH)[-1], '')
-    file_name = file_path.replace(file_path.split(BACKSLASH)[-1].split('.')[-1], '')
+    root = file_path.replace(file_path.split(backslash)[-1], '')
+    file_name = file_path.replace(file_path.split(backslash)[-1].split('.')[-1], '')
     ext = file_name.split('.')[-1]
 
     file_name_mix = f'{file_name}_{nr}'
@@ -398,15 +461,8 @@ def manual_path_split(file_path, config):
 
     return [file_path, root, file_name, ext, file_name_mix, no_ext, no_ext_mix]
 
-
-def multiple_file_split():
-    """
-    多文件终端拖入路径分离函数
-
-    :return: file_list, fail_list
-    """
-
-    input_path = input('Drag in a .csv file (Or input [E/e] to exit) \n>>')
+def multiple_file_split(msg):
+    input_path = input(msg)
     file_list = []
     fail_list = []
     addr_start = -1
@@ -451,15 +507,11 @@ def multiple_file_split():
         return [False, 'Allow only one file to be dragged in.']
     return [True, file_list[0]]
 
-
-def folder_file_statistic(content, config):
-    # 解包config
-    CLEAR, VERSION, SELECT_DICT, PIL_FORMAT_LIST, BACKSLASH, OS_TYPE = config
-
+def folder_file_statistic(content):
     file_list = []
     fail_list = []
 
-    system(CLEAR)
+    system(clsr)
     print(content)
 
     INPUT_PATH = input('Drag in a folder \n>> ').strip(r" ").strip(r"'").strip(r'"')
@@ -467,9 +519,9 @@ def folder_file_statistic(content, config):
         print(f'{erro}: The path you drag in is not a folder.')
         print(f'{erro}: Please make sure the path you drag in is a folder.')
         erro_countdown(3)
-        (file_list, fail_list) = folder_file_statistic(content, config)
+        (file_list, fail_list) = folder_file_statistic(content)
     else:
-        for root, dirs, files in walk(INPUT_PATH):
+        for root, _, files in walk(INPUT_PATH):
             for f in files:
                 file_path = path.join(root, f)
                 if path.isfile(file_path):
@@ -483,8 +535,8 @@ def folder_file_statistic(content, config):
         return False
     return file_list, fail_list
 
-def win_path_chk():
-    wpc_path = ci('Drag in a .csv file (Or input [E/e] to exit)\n>>')
+def win_path_chk(msg):
+    wpc_path = ci(msg)
     if wpc_path in {'E', 'e'}:
         system(clsr);exit(0)
     wpc_res = isfile(wpc_path)
@@ -567,6 +619,29 @@ def history_():
     print(open(param_log_file, 'r').read())
     print(f'{info}: Press return/enter back menu.');input()
 
+def eva(adp, odp):
+    ad = rdc(adp, header=None)
+    od = rdc(odp, header=None)
+    
+    od[0] = od[0].apply(lambda x : floor(x / 10) * 10)
+    ad[0] = ad[0].apply(lambda x : floor(x / 10) * 10)
+    
+    a, b = agDiff(od, ad), corrDiff(od, ad)
+    c, d = oddsDiff(od, ad)
+    print(f'ScoreA  : {a}')
+    print(f'ScoreB  : {b}')
+    print(f'ScoreC  : {c}')
+    print(f'ScoreD  : {d}')
+    print(f'Average : {(a + b + c + d) / 4}')
+    print(f'{"*" * 50}')
+    print(f'history:')
+    print(open(param_log_file, 'r').read())
+    print(f'{info}: Press return/enter exit.');input()
+    with open(param_log_file, 'a+') as plfe:
+        plfe.write(f'ScoreA  : {a}\nScoreB  : {b}\nScoreC  : {c}\nScoreD  : {d}\n')
+        plfe.write(f'Average : {(a + b + c + d) / 4}\n')
+    
+
 def banner_(menu=False, root=None, file_path=None):
     ascii_b = ' _ ______        ______    _____           _     \n'\
               '(_)  _ \ \      / / ___|  |_   _|__   ___ | |___ \n'\
@@ -612,7 +687,11 @@ if __name__ == '__main__':
     history = []
     system(clsr);banner_()
     while True:
-        mfs_res = multiple_file_split() if platform in {'linux', 'darwin'} else win_path_chk()
+        csv_msg = 'Drag in a .csv file (Or input [E/e] to exit)\n>> '
+        uly_msg = 'Drag in utility.csv (Or input [E/e] to exit)\n>> '
+        mfs_res = multiple_file_split(csv_msg) if platform in {'linux', 'darwin'} else win_path_chk(csv_msg)
+        mfs_res_u = multiple_file_split(uly_msg) if platform in {'linux', 'darwin'} else win_path_chk(uly_msg)
+        du = rdc(mfs_res_u[1])
         if mfs_res[0]:
             ipf = mfs_res[1]
             LPS = LibraryPathSplit(ipf)
@@ -655,9 +734,12 @@ if __name__ == '__main__':
                     globals()[menu_list[select - 1]]()
                     plf = open(param_log_file, 'a+')
                     continue
+                if menu_list[select - 1] == 'exit_tool':
+                    globals()[menu_list[select - 1]](ipf, opf)
+                    break
                 station = []
                 write_temp = f'No.{count} [{menu_list[select - 1]}] '
-                opf = f'{file_save_path}/No.{count}_[{menu_list[select - 1]}].csv'
+                opf = f'{file_save_path}/No.{count}_{menu_list[select - 1]}.csv'
                 globals()[menu_list[select - 1]](ipf, opf)
                 if EXIT_POINT == -1:
                     EXIT_POINT = 0
@@ -674,8 +756,10 @@ if __name__ == '__main__':
                 cc = input('continue? [Y(es)/(E)xit]>> ')
                 if cc.lower() in {'e', 'exit'}:
                     # 保留接口，可以以后集成判分
-                    system(clsr);banner_()
+                    system(clsr);banner_(file_path=mfs_res[1])
                     plf.close()
+                    eva(opf, mfs_res[1])
+                    system(clsr);banner_()
                     break
                 ipf = opf
                 count += 1
